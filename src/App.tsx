@@ -1,7 +1,8 @@
 import React from "react";
+import { Router } from "./router";
 
 function App() {
-  return <h1>Deu certo!</h1>;
+  return <Router />;
 }
 
 export default App;
