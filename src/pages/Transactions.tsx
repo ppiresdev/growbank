@@ -1,56 +1,134 @@
-import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import {
+  Box,
+  MenuItem,
+  Paper,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  Button,
+} from "@mui/material";
 import axios, { AxiosResponse } from "axios";
 import { useEffect, useState } from "react";
 
 type Transactions = {
-	id: string;
-	title: string,
-	type: string,
-	value: number
-}
+  _id: string;
+  _title: string;
+  _type: string;
+  _value: number;
+};
+type Balance = {
+  income: number;
+  outcome: number;
+  total: number;
+};
 
 type ApiResponse = {
-	balance: {income:number,outcome: number, total: number},		
-	transactions: Transactions[]
-}
+  balance: Balance;
+  transactions: Transactions[];
+};
 
 export default function Transactions() {
-	const [data, setData] = useState<Transactions[]>([]);
+  const userID = JSON.parse(localStorage.getItem("user-logado") as string);
+  const [transactions, setTransactions] = useState<Transactions[]>([]);
+  const [hasUpdate, setHasUpdate] = useState(true);
+  const [title, setTitle] = useState("");
+  const [value, setValue] = useState(0);
+  const [type, setType] = useState<"income" | "outcome">("income");
+  const [balance, setBalance] = useState<Balance>({
+    income: 0,
+    outcome: 0,
+    total: 0,
+  });
 
-	useEffect(() => {
-		const userID = JSON.parse(localStorage.getItem('user-logado') as string)
-		console.log(userID)
-		async function getTransactions (){
-			const {data}: AxiosResponse<ApiResponse> = await axios.get(`http://localhost:3333/user/${userID}/transactions`);
-			console.log(data)
-			setData(data.transactions)			
-		}
-	getTransactions()
-	},[]);
+  useEffect(() => {
+    async function getTransactions() {
+      const { data }: AxiosResponse<ApiResponse> = await axios.get(
+        `http://localhost:3333/user/${userID}/transactions`
+      );
+      console.log(data);
+      setTransactions(data.transactions);
+      setBalance(data.balance);
+    }
+    if (hasUpdate) {
+      getTransactions();
+      setHasUpdate(false);
+    }
+  }, [hasUpdate]);
 
+  async function criarTransacao() {
+    const transaction = {
+      title,
+      value,
+      type,
+    };
+    const response: AxiosResponse<{ transactions: Transactions[] }> =
+      await axios.post(
+        `http://localhost:3333/user/${userID}/transactions`,
+        transaction
+      );
+    setHasUpdate(true);
+    console.log(response.data);
+  }
 
-	return <Box>
-		<TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Titulo</TableCell>
-            <TableCell>Tipo</TableCell>
-            <TableCell>Valor</TableCell>            
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row: Transactions) => (
-            <TableRow key={row.id}>              
-              <TableCell>{row.title}</TableCell>
-              <TableCell>{row.type}</TableCell>
-              <TableCell>{row.value}</TableCell>
+  return (
+    <Box display="flex" flexDirection="column" gap="40px">
+      <Box display="flex" flexDirection="column" gap="16px">
+        <TextField
+          label="Tittle"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <TextField
+          type="number"
+          label="Value"
+          value={value}
+          onChange={(e) => setValue(Number(e.target.value))}
+        />
+        <Select
+          value={type}
+          label="Type"
+          onChange={(e) => setType(e.target.value as "income" | "outcome")}
+        >
+          <MenuItem value={"income"}>Income</MenuItem>
+          <MenuItem value={"outcome"}>Outcome</MenuItem>
+        </Select>
+        <Button onClick={criarTransacao} variant="outlined">
+          Criar Transação
+        </Button>
+      </Box>
+
+      <Box display="flex" justifyContent="space-evenly">
+        <Typography>income - R$ {balance.income},00</Typography>
+        <Typography>outcome - R$ {balance.outcome},00</Typography>
+        <Typography>total - R$ {balance.total},00</Typography>
+      </Box>
+
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Titulo</TableCell>
+              <TableCell>Tipo</TableCell>
+              <TableCell>Valor</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-	</Box>
-
-
+          </TableHead>
+          <TableBody>
+            {transactions.map((row: Transactions) => (
+              <TableRow key={row._id}>
+                <TableCell>{row._title}</TableCell>
+                <TableCell>{row._type}</TableCell>
+                <TableCell>{row._value}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
 }
