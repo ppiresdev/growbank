@@ -21,7 +21,9 @@ type Transactions = {
   _title: string;
   _type: string;
   _value: number;
+  _archived: boolean;
 };
+
 type Balance = {
   income: number;
   outcome: number;
@@ -38,6 +40,9 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState<Transactions[]>([]);
   const [hasUpdate, setHasUpdate] = useState(true);
   const [title, setTitle] = useState("");
+  const [titleFilter, setTitleFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [archivedFilter, setArchivedFilter] = useState("");
   const [value, setValue] = useState(0);
   const [type, setType] = useState<"income" | "outcome">("income");
   const [balance, setBalance] = useState<Balance>({
@@ -102,8 +107,64 @@ export default function Transactions() {
           Criar Transação
         </Button>
       </Box>
+      <Box>
+        <TextField
+          label="Title"
+          value={titleFilter}
+          onChange={(e) => setTitleFilter(e.target.value)}
+        />
+        <TextField
+          label="Type"
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+        />
 
-      <Box display="flex" justifyContent="space-evenly">
+        <TextField
+          label="Archived"
+          value={archivedFilter}
+          onChange={(e) => setArchivedFilter(e.target.value)}
+        />
+
+        <Button
+          onClick={async () => {
+            let query = "";
+
+            if (archivedFilter) {
+              query += `?archived=${archivedFilter}`;
+            }
+
+            if (typeFilter) {
+              query +=
+                query[0] === "?"
+                  ? `&type=${typeFilter}`
+                  : `?type=${typeFilter}`;
+            }
+
+            if (titleFilter) {
+              query +=
+                query[0] === "?"
+                  ? `&title=${titleFilter}`
+                  : `?title=${titleFilter}`;
+            }
+
+            const { data }: AxiosResponse<ApiResponse> = await axios.get(
+              `http://localhost:3333/user/${userID}/transactions${query}`
+            );
+            console.log(data);
+
+            setTransactions(data.transactions);
+            setBalance(data.balance);
+          }}
+        >
+          Buscar
+        </Button>
+      </Box>
+
+      <Box
+        display="flex"
+        justifyContent="space-evenly"
+        sx={{ backgroundColor: "red" }}
+      >
         <Typography>income - R$ {balance.income},00</Typography>
         <Typography>outcome - R$ {balance.outcome},00</Typography>
         <Typography>total - R$ {balance.total},00</Typography>
@@ -116,6 +177,7 @@ export default function Transactions() {
               <TableCell>Titulo</TableCell>
               <TableCell>Tipo</TableCell>
               <TableCell>Valor</TableCell>
+              <TableCell>Arquivado</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -124,6 +186,7 @@ export default function Transactions() {
                 <TableCell>{row._title}</TableCell>
                 <TableCell>{row._type}</TableCell>
                 <TableCell>{row._value}</TableCell>
+                <TableCell>{row._archived.toString()}</TableCell>
               </TableRow>
             ))}
           </TableBody>
