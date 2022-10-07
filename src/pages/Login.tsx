@@ -1,7 +1,7 @@
 import { Box, Button, TextField } from "@mui/material";
 import React, { useState } from "react";
 import axios, { AxiosResponse } from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export const Login = () => {
   console.log("===Process env===", process.env.REACT_APP_URL);
@@ -64,6 +64,9 @@ export const Login = () => {
       <Button variant="outlined" onClick={onSubmit}>
         Logar
       </Button>
+      <Link to={"/signup"}>
+        <Button variant="outlined">Cadastro</Button>
+      </Link>
     </Box>
   );
 };
