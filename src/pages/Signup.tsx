@@ -19,7 +19,7 @@ export const Signup = () => {
     };
 
     console.log("===BODY===", myObject);
-    axios.post("http://localhost:3333/user", myObject);
+    axios.post(process.env.REACT_APP_URL + "user", myObject);
   };
 
   return (

@@ -54,7 +54,7 @@ export default function Transactions() {
   useEffect(() => {
     async function getTransactions() {
       const { data }: AxiosResponse<ApiResponse> = await axios.get(
-        `http://localhost:3333/user/${userID}/transactions`
+        process.env.REACT_APP_URL + `user/${userID}/transactions`
       );
       console.log(data);
       setTransactions(data.transactions);
@@ -74,7 +74,7 @@ export default function Transactions() {
     };
     const response: AxiosResponse<{ transactions: Transactions[] }> =
       await axios.post(
-        `http://localhost:3333/user/${userID}/transactions`,
+        process.env.REACT_APP_URL + `user/${userID}/transactions`,
         transaction
       );
     setHasUpdate(true);
@@ -148,7 +148,7 @@ export default function Transactions() {
             }
 
             const { data }: AxiosResponse<ApiResponse> = await axios.get(
-              `http://localhost:3333/user/${userID}/transactions${query}`
+              process.env.REACT_APP_URL + `user/${userID}/transactions${query}`
             );
             console.log(data);
 
